@@ -21,23 +21,21 @@ void loop() {
   }
   switch (task) {
       case 1: //segment strip wipe
-        colorWipeSeg(strip.Color(255, 0, 0), 50, 3);
+        colorWipeSeg(strip.Color(0, 0, 255), 15, 3);
         break;
       case 2: //segment strip wipe reverse
-        colorWipeRevSeg(strip.Color(255,0,0), 50, 3);
+        colorWipeRevSeg(strip.Color(0,0,255), 15, 3);
         break;
       case 3: //full strip wipe
-        colorWipe(strip.Color(0, 255, 0), 50);
+        colorWipe(strip.Color(0, 255, 0), 15);
         break;
       case 4:  //full strip wipe reversed 
-        colorWipeRev(strip.Color(0, 255, 0), 50);
+        colorWipeRev(strip.Color(0, 255, 0), 15);
         break;
       case 5: //rainbow
-        rainbow(20);
+        rainbow(5);
       default: //blank
         blank();
-        
-        
   }
 
 }
