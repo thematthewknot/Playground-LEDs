@@ -4,7 +4,12 @@
 #define PIN 5
 #define PIN2 6
 
-//SoftwareSerial mySerial(10, 11); // RX, TX
+uint8_t red =0;
+uint8_t green=255;
+uint8_t blue =0;
+
+int state = 0;
+
 int jump=0;
 uint8_t degreeold=0;
 uint8_t oldlocation=0; 
@@ -55,68 +60,108 @@ void setup()
 
 void loop() {
 
-  if(Serial.available()) 
-  {
+if(Serial.available() && state==0) 
+{
    
    uint8_t degree  = Serial.read(); //incoming serial stream
-   degree=(degree/2);
-  /* Serial.print(degree);
+   if (degree== 255)
+   {
+    state = 1;
 
-   // turnoff(); 
-    //colorSeg(strip.Color(degree,0,255-degree),  degree, 5);
-   // lastdeg=degree;
-   //colorSeg(strip.Color(0,0,0),  lastdeg, 3);
+   }
+  if(state==0){
+     degree=(degree/2);
+    
+    rawData1 = degree;                       // read sensor 1
+    degree = digitalSmooth(rawData1, sensSmoothArray1);  // every sensor you use with digitalSmooth needs its own array
 
-   
-  
-  // subtract the last reading:
-  total= total - readings[index];         
-  // read from the sensor:  
-  readings[index] = degree; 
-  // add the reading to the total:
-  total= total + readings[index];       
-  // advance to the next position in the array:  
-  index = index + 1;                    
+       
 
-  // if we're at the end of the array...
-  if (index >= numReadings)              
-    // ...wrap around to the beginning: 
-    index = 0;                           
-
-  // calculate the average:
-  average = total / numReadings;         
-  // send it to the computer as ASCII digits
-  Serial.println(average);   */
-  rawData1 = degree;                       // read sensor 1
-  degree = digitalSmooth(rawData1, sensSmoothArray1);  // every sensor you use with digitalSmooth needs its own array
-
-     
-
-  if(degree>degreeold){
-     jump= ((degree - degreeold)/10) +1;
-    for(int i= degreeold; i <= degree; i+=jump){
-      //turnoff(); 
-      
-      colorSeg(strip.Color(i,0,255-i),  i, 5);
-      //delay(1);
-      //delay(1);        // delay in between reads for stability            
-    }
+    if(degree>degreeold){
+       jump= ((degree - degreeold)/10) +1;
+      for(int i= degreeold; i <= degree; i+=jump){
+        //turnoff(); 
+        
+        //colorSeg(strip.Color(i,0,255-i),  i, 5);
+        colorSeg(strip.Color(red,green,blue),  i, 5);
+        //delay(1);
+        //delay(1);        // delay in between reads for stability            
+      }
   }
 
-
-  if(degree<degreeold){
+    if(degree<degreeold){
      jump= ((degreeold -degree)/10) +1;
 
     for(int i= degreeold; i >= degree; i-=jump){
      // turnoff(); 
 
-      colorSeg(strip.Color(i,0,255-i),  i, 5);
+      colorSeg(strip.Color(red,green,blue),  i, 5);
    //   delay(1);
       //delay(1);        // delay in between reads for stability            
     }
   }
 
 degreeold=degree;
+}
+
+if(state==1)
+{
+ // if(Serial.available()) 
+  { 
+    while(!Serial.available())
+    {
+
+    }
+     Serial.print("Entering state 1:");
+    
+    uint8_t infeed  = Serial.read(); //incoming serial stream
+    Serial.println(infeed);
+    if (infeed== 1)
+    {Serial.println(" listening for RGB");
+      while(!Serial.available())
+    {
+
+    }
+       red  = Serial.read();
+         while(!Serial.available())
+    {
+
+    }
+       green  = Serial.read();
+         while(!Serial.available())
+    {
+
+    }
+       blue  = Serial.read();
+      state=0;
+    }
+    if(infeed==2)
+    {Serial.println("starting rainbow");
+      rainbow(20);
+      turnoff();
+     strip.show();
+     strip2.show();
+      state=0;
+
+    }
+    else
+    {
+      Serial.print("Returning to state 0 value:");
+      Serial.println(infeed);
+      state=0;
+    }
+
+  }
+
+
+}
+
+
+
+  
+
+
+
 
 }
 }
@@ -224,8 +269,32 @@ oldlocation=location;
 }
 
 
+void rainbow(uint8_t wait) {
+  uint16_t i, j;
 
+  for(j=0; j<256; j++) {
+    for(i=0; i<strip.numPixels(); i++) {
+      strip.setPixelColor(i, Wheel((i+j) & 255));
+       strip2.setPixelColor(i, Wheel((i+j) & 255));
+    }
+    strip.show();
+     strip2.show();
+    delay(wait);
+  }
+}
 
+uint32_t Wheel(byte WheelPos) {
+  WheelPos = 255 - WheelPos;
+  if(WheelPos < 85) {
+   return strip.Color(255 - WheelPos * 3, 0, WheelPos * 3);
+  } else if(WheelPos < 170) {
+    WheelPos -= 85;
+   return strip.Color(0, WheelPos * 3, 255 - WheelPos * 3);
+  } else {
+   WheelPos -= 170;
+   return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
+  }
+}
 
 
 /*#include <Adafruit_NeoPixel.h>
