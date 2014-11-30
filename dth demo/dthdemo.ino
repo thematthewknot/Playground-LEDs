@@ -4,40 +4,59 @@
 int task = 0;
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(120, PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip2 = Adafruit_NeoPixel(120, 5, NEO_GRB + NEO_KHZ800);
 
 void setup() {
   Serial.begin(9600); //setup Serial
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
+  strip.setBrightness(255); //Setup global brightness
+  Serial.setTimeout(10);
+  strip2.begin();
+  strip2.show(); // Initialize all pixels to 'off'
+  strip2.setBrightness(255); //Setup global brightness
+
 }
 
 void loop() {
-
-
    if(Serial.available() ) 
   {
-      // look for the next valid integer in the incoming serial stream:
-    task = Serial.parseInt(); 
+    task = Serial.parseInt(); //incoming serial stream
+
   }
   switch (task) {
       case 1: //segment strip wipe
         colorWipeSeg(strip.Color(0, 0, 255), 15, 3);
+        colorWipeSeg(strip2.Color(0, 0, 255), 15, 3);
         break;
       case 2: //segment strip wipe reverse
         colorWipeRevSeg(strip.Color(0,0,255), 15, 3);
         break;
       case 3: //full strip wipe
-        colorWipe(strip.Color(0, 255, 0), 15);
+       // colorWipe(strip.Color(0, 0, 255), 15);
+        colorWipeSeg(strip.Color(0, 0, 255), 2, 5);
+      // rainbowWipeSeg(5,3);
         break;
       case 4:  //full strip wipe reversed 
-        colorWipeRev(strip.Color(0, 255, 0), 15);
+        //colorWipeRev(strip.Color(0, 0, 255), 15);
+        colorWipeSeg(strip.Color(0, 0, 255), 2, 5);
+       //  colorWipeRevSeg(strip.Color(0,0,255), 15, 3);
+        //rainbowWipeSeg(5,3);
         break;
       case 5: //rainbow
-        rainbow(5);
+      // rainbow(5);
+        colorWipeRevSeg(strip.Color(0,0,255), 2, 5);
+        break;
+      case 6: //segment bounce wipe
+        colorWipeSeg(strip.Color(0, 0, 255), 15, 3);
+        colorWipeRevSeg(strip.Color(0,0,255), 15, 3);
+        break;
+      case 7: //segment rainbow wipe
+        rainbowWipeSeg(5,3);
+        break; 
       default: //blank
         blank();
   }
-
 }
 
 // Fill the strip one after the other with a color
@@ -113,4 +132,20 @@ uint32_t Wheel(byte WheelPos) {
    return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
   }
 }
+
+
+//short segment of moving color
+void rainbowWipeSeg(uint8_t wait, uint32_t seg) {
+  uint16_t i, j;
+
+  for(j=0; j<256; j++) {
+    for(i=0; i<strip.numPixels(); i++) {
+      strip.setPixelColor(i, Wheel((i+j) & 255));
+       strip.setPixelColor(i-seg,(0,0,0));
+        strip.show();
+         delay(wait);
+    }
+  }
+}
+  
 
